@@ -60,6 +60,7 @@ const Point & Point :: operator = (const Point & rhs)
    dead     = rhs.dead;
    wrap     = rhs.wrap;
 
+    
    return *this;
 }
 

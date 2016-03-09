@@ -8,6 +8,7 @@
  *    the location and the bounds.
  ************************************************************************/
 
+
 #ifndef POINT_H
 #define POINT_H
 

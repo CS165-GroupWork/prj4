@@ -200,6 +200,7 @@ void keyboardCallback(unsigned char key, int x, int y)
    Interface ui;
    switch (key)
    {
+           
       case ' ':
          assert(ui.isSpacePress == false);
          ui.isSpacePress = true;

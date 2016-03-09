@@ -24,6 +24,8 @@
  ********************************************/
 class Interface
 {
+ 
+    
 public:
    // Default constructor useful for setting up the random variables
    // or for opening the file for output

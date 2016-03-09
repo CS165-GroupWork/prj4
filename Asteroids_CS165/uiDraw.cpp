@@ -40,7 +40,7 @@
 
 #include "point.h"
 #include "uiDraw.h"
-
+//#include "GL/glfw.h"
 using namespace std;
 
 #define deg2rad(value) ((M_PI / 180) * (value))
