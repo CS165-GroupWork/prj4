@@ -429,6 +429,7 @@ void drawLargeAsteroid( const Point & center, int rotation)
  *************************************************************************/
 void drawShip(const Point & center, int rotation, bool thrust)
 {
+    
    // ultra simple point
    struct PT
    {

@@ -38,6 +38,7 @@ public:
       initialize(argc, argv, title);
    }
    
+    
    // Destructor, incase any housecleaning needs to occr
    ~Interface();
 

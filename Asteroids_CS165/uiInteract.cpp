@@ -212,6 +212,7 @@ void keyboardCallback(unsigned char key, int x, int y)
    }
 }
 
+
 /************************************************************************
  * INTEFACE : IS TIME TO DRAW
  * Have we waited long enough to draw swap the background buffer with

@@ -7,7 +7,12 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		507229281C70272A0075876F /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507229271C70272A0075876F /* main.cpp */; };
+		507229341C70278F0075876F /* uiDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5072292E1C70278F0075876F /* uiDraw.cpp */; };
+		507229351C70278F0075876F /* uiInteract.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507229311C70278F0075876F /* uiInteract.cpp */; };
+		507229361C70278F0075876F /* point.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507229331C70278F0075876F /* point.cpp */; };
+		507229391C7028B50075876F /* asteroids.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 507229371C7028B50075876F /* asteroids.cpp */; };
+		5072293B1C702D220075876F /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5072293A1C702D220075876F /* OpenGL.framework */; };
+		5072293D1C702D270075876F /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5072293C1C702D270075876F /* GLUT.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,7 +29,16 @@
 
 /* Begin PBXFileReference section */
 		507229241C70272A0075876F /* Asteroids_CS165 */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = Asteroids_CS165; sourceTree = BUILT_PRODUCTS_DIR; };
-		507229271C70272A0075876F /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		5072292E1C70278F0075876F /* uiDraw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uiDraw.cpp; sourceTree = "<group>"; };
+		5072292F1C70278F0075876F /* uiDraw.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = uiDraw.h; sourceTree = "<group>"; };
+		507229301C70278F0075876F /* uiInteract.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = uiInteract.h; sourceTree = "<group>"; };
+		507229311C70278F0075876F /* uiInteract.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = uiInteract.cpp; sourceTree = "<group>"; };
+		507229321C70278F0075876F /* point.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = point.h; sourceTree = "<group>"; };
+		507229331C70278F0075876F /* point.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = point.cpp; sourceTree = "<group>"; };
+		507229371C7028B50075876F /* asteroids.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = asteroids.cpp; sourceTree = "<group>"; };
+		507229381C7028B50075876F /* asteroids.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = asteroids.h; sourceTree = "<group>"; };
+		5072293A1C702D220075876F /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		5072293C1C702D270075876F /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -32,6 +46,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5072293D1C702D270075876F /* GLUT.framework in Frameworks */,
+				5072293B1C702D220075876F /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -41,10 +57,13 @@
 		5072291B1C70272A0075876F = {
 			isa = PBXGroup;
 			children = (
+				5072293C1C702D270075876F /* GLUT.framework */,
+				5072293A1C702D220075876F /* OpenGL.framework */,
 				507229261C70272A0075876F /* Asteroids_CS165 */,
 				507229251C70272A0075876F /* Products */,
 			);
 			sourceTree = "<group>";
+			usesTabs = 0;
 		};
 		507229251C70272A0075876F /* Products */ = {
 			isa = PBXGroup;
@@ -57,7 +76,14 @@
 		507229261C70272A0075876F /* Asteroids_CS165 */ = {
 			isa = PBXGroup;
 			children = (
-				507229271C70272A0075876F /* main.cpp */,
+				5072292E1C70278F0075876F /* uiDraw.cpp */,
+				5072292F1C70278F0075876F /* uiDraw.h */,
+				507229301C70278F0075876F /* uiInteract.h */,
+				507229311C70278F0075876F /* uiInteract.cpp */,
+				507229321C70278F0075876F /* point.h */,
+				507229331C70278F0075876F /* point.cpp */,
+				507229371C7028B50075876F /* asteroids.cpp */,
+				507229381C7028B50075876F /* asteroids.h */,
 			);
 			path = Asteroids_CS165;
 			sourceTree = "<group>";
@@ -118,7 +144,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				507229281C70272A0075876F /* main.cpp in Sources */,
+				507229391C7028B50075876F /* asteroids.cpp in Sources */,
+				507229361C70278F0075876F /* point.cpp in Sources */,
+				507229341C70278F0075876F /* uiDraw.cpp in Sources */,
+				507229351C70278F0075876F /* uiInteract.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -72,6 +72,7 @@ void Point::setY(float y)
 {
    assert(yMin < yMax);
 
+    
    // wrap as necessary
    if (wrap)
    {
