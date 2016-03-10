@@ -56,7 +56,8 @@ float Point::xMin = -150.0;
 float Point::xMax =  150.0;
 float Point::yMin = -150.0;
 float Point::yMax =  150.0;
-bool isfinishedStrike = true;
+int ticks =0;
+bool isfinishedStrike;
 bool isfinishedAdvance = true;
 bool anotherasteroid = true;
 bool isfinishedAdvanceAsteroids = true;
@@ -67,19 +68,21 @@ float shipAngle = 0;
 float timeTilNextasteroid;
 float ShipVelocity = 10;
 int score = 0;
+int lives = 3;
+bool canShootAnother;
 bool leftIsPressed;
 bool rightIsPressed;
 bool forwardIsPressed;
 bool reverseIsPressed;
 int timePressedRight = 0;
 int timePressedLeft = 0;
-
+bool objectsHaveDied = false;
 Ship ship;
 std::vector <Bullet> theBullets;
 std::vector <Asteroid> theAsteroids;
 
 /***************************************************
- * Asteroids :: CONSTRUCTOR
+ * Ship :: CONSTRUCTOR
  * Give the bullet a set velocity and set
  * the positions of everything else.
  ***************************************************/
@@ -89,6 +92,22 @@ Ship::Ship()
 //    ship.setX(0);
 //    ship.setY(0);
     shipAngle = 0;
+};
+/***************************************************
+ * Bullet :: CONSTRUCTOR
+ * Give the bullet a set velocity and set
+ * the positions of everything else.
+ ***************************************************/
+Bullet::Bullet()
+{
+//    float thex = ship.getCurrentPoint().getX();
+//    float they = ship.getCurrentPoint().getY();
+//    this->getCurrentPoint().setX(thex);
+//    this->getCurrentPoint().setY(they);
+    float angleRadian = (ship.getAngle()-90) *PI/180;
+    this->setDX(-1*(ship.getVelocity()+5)*cos(angleRadian));
+    this->setDY(-1*(ship.getVelocity()+5)*sin(angleRadian));
+    alive = true;
 };
 /***************************************************
  * Asteroids :: CONSTRUCTOR
@@ -102,13 +121,63 @@ Asteroids::Asteroids()
 };
 
 Asteroid::Asteroid(){
-    this->setSize(3);
-    this->setX(random(ship.getCurrentPoint().getXMin(), ship.getCurrentPoint().getXMax()));
-    this->setY(random(ship.getCurrentPoint().getYMin(), ship.getCurrentPoint().getYMax()));
-    this->setDX(random(-.2, .2));
-    this->setDY(random(-.2, .2));
-    this->setAngle(random(0, 360));
-    this->giveLife();
+    setSize(3);
+    setX(random(ship.getCurrentPoint().getXMin(), ship.getCurrentPoint().getXMax()));
+    setY(random(ship.getCurrentPoint().getYMin(), ship.getCurrentPoint().getYMax()));
+    setDX(random(-.2, .2));
+    setDY(random(-.2, .2));
+    setAngle(random(0, 360));
+    giveLife();
+    setRotation(random(-2, 2));
+}
+Asteroid::Asteroid(int size){
+    setSize(size);
+    giveLife();
+}
+void Asteroids::makeAsteroids(Point point, int sizeOfAsteroidHit, Asteroid &asteroid){
+    float angleRadian = (asteroid.getAngle()-90) *PI/180;
+    if (sizeOfAsteroidHit == 3){
+            //create 2 medium asteroids and a small
+        Asteroid mediumForward(2);
+        
+        mediumForward.setX(point.getX());
+        mediumForward.setY(point.getY());
+        mediumForward.setAngle(asteroid.getAngle());
+        
+        mediumForward.setDX(-1*(asteroid.getVelocity()+1)*cos(angleRadian));
+        mediumForward.setDY(-1*(asteroid.getVelocity()+1)*sin(angleRadian));
+        theAsteroids.push_back(mediumForward);
+        Asteroid mediumBack(2);
+        
+        mediumBack.setX(point.getX());
+        mediumBack.setY(point.getY());
+        mediumBack.setDX(-1*(asteroid.getVelocity()-1)*cos(angleRadian));
+        mediumBack.setDY(-1*(asteroid.getVelocity()-1)*sin(angleRadian));
+        mediumBack.setAngle(asteroid.getAngle());
+        theAsteroids.push_back(mediumBack);
+    }else if(sizeOfAsteroidHit == 2){
+           // create 2 small asteroids
+            Asteroid smallLeft(1);
+        
+        smallLeft.setX(point.getX());
+        smallLeft.setY(point.getY());
+        smallLeft.setDX(1*(asteroid.getVelocity()-1)*cos(angleRadian));
+        smallLeft.setDY(-1*(asteroid.getVelocity()-1)*sin(angleRadian));
+        smallLeft.setAngle(asteroid.getAngle());
+        theAsteroids.push_back(smallLeft);
+    };
+    //there is always a smallRight one
+  Asteroid smallRight(1);
+
+    
+    //change properties for smallRight
+    smallRight.setX(point.getX());
+    smallRight.setY(point.getY());
+    smallRight.setDX(-1*(asteroid.getVelocity()-1)*cos(angleRadian));
+    smallRight.setDY(1*(asteroid.getVelocity()-1)*sin(angleRadian));
+    smallRight.setAngle(asteroid.getAngle());
+    theAsteroids.push_back(smallRight);
+    asteroid.kill();
 }
 //
 ///********************************************
@@ -159,15 +228,15 @@ for (int j = 0; j < theAsteroids.size(); j++){
         theAsteroids[j].setX(newX);
         //std::cout << "RIGHT" << std::endl;
     }
-    if(X< theAsteroids[j].getCurrentPoint().getXMin()){
+    else if(X< theAsteroids[j].getCurrentPoint().getXMin()){
         theAsteroids[j].setX(newX);
         //std::cout << "LEFT" << std::endl;
     }
-    if(Y   > theAsteroids[j].getCurrentPoint().getYMax()){
+    else if(Y   > theAsteroids[j].getCurrentPoint().getYMax()){
         theAsteroids[j].setY(newY);
         //std::cout << "TOP" << std::endl;
     }
-    if(Y  < theAsteroids[j].getCurrentPoint().getYMin()){
+    else if(Y  < theAsteroids[j].getCurrentPoint().getYMin()){
         theAsteroids[j].setY(newY );
         //std::cout << "BOTTOM" << std::endl;
     }
@@ -175,93 +244,162 @@ for (int j = 0; j < theAsteroids.size(); j++){
         }
         isfinishedAdvanceAsteroids = true;
 }
-///****************************************
-// * STRIKE
-// * Strike the ShipCurrentPoint.  The further from the center,
-// * the more it hits
-// ****************************************/
-//void Asteroids::strike()
-//{
-//    
-//    // Ship not at the ShipCurrentPoint yet
-//    //loop through all the bullets in vector
-//    int theSize = (int)theBullets.size();
-//    int theasteroidSize =(int)theasteroids.size();
-//    for (int i = 0; i < theSize; i++){
-//        float bulX = theBullets[i].bulletPoint.getX();
-//        float bulY = theBullets[i].bulletPoint.getY();
-//        for (int j = 0; j < theasteroidSize; j++){
-//            float asteroidX = theasteroids[j].asteroidPoint.getX();
-//            float asteroidY = theasteroids[j].asteroidPoint.getY();
-//            //if the distance is closer than the tolerance level
-//            if((bulX-asteroidX < 30) || (bulY-asteroidY <30)){
-//                float disBetween = sqrtf((fabs(asteroidX - bulX)* fabs(asteroidX - bulX)) +(fabs(asteroidY - bulY)* fabs(asteroidY - bulY)));
-//                //  std::cout << "Dist: " << disBetween << << std::endl;
-//                if (disBetween < 24){
-//                    //remove the asteroid and bullet
-//                    theBullets[i] = theBullets.back(); theBullets.pop_back(); //i--;
-//                    theasteroids[j] = theasteroids.back(); theasteroids.pop_back(); //j--;
-//                    score++;
-//                    //theasteroids[i].alive = false;
-//                    //theBullets[j].alive = false;
-//                }
+/****************************************
+ * STRIKE
+ * Strike the ShipCurrentPoint.  The further from the center,
+ * the more it hits
+ ****************************************/
+void Asteroids::strike()
+{
+    
+    // Ship not at the ShipCurrentPoint yet
+    //loop through all the bullets in vector
+    int theSize = (int)theBullets.size();
+    int theAsteroidSize =(int)theAsteroids.size();
+    
+    
+    for (int i = 0; i < theSize; i++){
+        float bulX = theBullets[i].getX();
+        float bulY = theBullets[i].getY();
+        for (int j = 0; j < theAsteroidSize; j++){
+            float asteroidX = theAsteroids[j].getX();
+            float asteroidY = theAsteroids[j].getY();
+            //if the distance is closer than the tolerance level
+            if((bulX-asteroidX < (theAsteroids[j].getSize() * 10)) || (bulY-asteroidY < (theAsteroids[j].getSize() * 10))){
+                float disBetween = sqrtf((fabs(asteroidX - bulX)* fabs(asteroidX - bulX)) +(fabs(asteroidY - bulY)* fabs(asteroidY - bulY)));
+                //  std::cout << "Dist: " << disBetween << << std::endl;
+                if (disBetween < 20){
+                    theAsteroids[j].setHit();
+                    //std::cout << j ;
+                    int which = theAsteroids[j].getSize();
+                    if (which == 3) {
+                        //large asteroid to 2 medium and 1 small
+                        makeAsteroids(theAsteroids[j].getCurrentPoint(), 3, theAsteroids[j]);
+                        // std::cout << k;
+                    } else if (which == 2){
+                        //medium asteroid to 2 small
+                        makeAsteroids(theAsteroids[j].getCurrentPoint(), 2, theAsteroids[j]);
+                    } else {
+                        theAsteroids[j].kill();
+                    }
+                    theBullets[i].kill();
+                }
+            }
+        }
+        
+    }
+    //now check on the ship collision
+   
+        float bulX = ship.getX();
+        float bulY = ship.getY();
+        for (int j = 0; j < theAsteroidSize; j++){
+            float asteroidX = theAsteroids[j].getX();
+            float asteroidY = theAsteroids[j].getY();
+            //if the distance is closer than the tolerance level
+            if((bulX-asteroidX < (theAsteroids[j].getSize() * 10)) || (bulY-asteroidY < (theAsteroids[j].getSize() * 10))){
+                float disBetween = sqrtf((fabs(asteroidX - bulX)* fabs(asteroidX - bulX)) +(fabs(asteroidY - bulY)* fabs(asteroidY - bulY)));
+                //  std::cout << "Dist: " << disBetween << << std::endl;
+                if (disBetween < 20){
+                    theAsteroids[j].setHit();
+                    ship.setX(0);
+                    ship.setY(0);
+                    ship.setAngle(0);
+                    int which = theAsteroids[j].getSize();
+                    if (which == 3) {
+                        //large asteroid to 2 medium and 1 small
+                        makeAsteroids(theAsteroids[j].getCurrentPoint(), 3, theAsteroids[j]);
+                        // std::cout << k;
+                    } else if (which == 2){
+                        //medium asteroid to 2 small
+                        makeAsteroids(theAsteroids[j].getCurrentPoint(), 2, theAsteroids[j]);
+                    } else {
+                        theAsteroids[j].kill();
+                    }
+
+                    lives--;
+                }
+            }
+        }
+    
+
+        //remove and add asteroids depending on size
+//    for (int k = 0; k < theAsteroidSize; k++){
+//            bool hasItHit = theAsteroids[k].getIsHit();
+//            if (hasItHit){
+//                std::cout << hasItHit;
+//
 //            }
-//        }
-//        
-//    }
-//    //
-//    // yeah, we hit the Ship
-//    //
-//    
-//    // hit.  Change the dx direction.
-//    //   dx *= -1.0;
-//    //   Ship.setX(Ship.getXMax() - 1.0);
-//    //
-//    //   // get some score
-//    //   score++;
-//    //
-//    //   // speed rotateLeft every 5 points
-//    //   if (score % 5 == 0)
-//    //      dx += -1.0;
-//    //
-//    //   // the dy is changed by the angle.
-//    //   dy += distance / 5;
-//    isfinishedStrike=true;
-//}
-//
-//
-///**************************************************
-// * SKEET : SHOOT
-// * Shoot the Ship with the spacebar
-// *************************************************/
-//void Asteroids::shoot(int space)
-//{
-//    //Should a new bullet Ship be shot out?
-//    if(space && theBullets.size() < 5){
-//        
-//        //create a new bullet
-//        Bullet newBullet;
-//        //set that bullets velocity
-//        newBullet.dx = ShipVelocity*(sin((angle-90)*PI/180));
-//        newBullet.dy = ShipVelocity*(cos((angle-90)*PI/180));
-//        //give that new bullet its start location
-//        newBullet.bulletPoint.setX(ShipCurrentPoint.getXMax());
-//        newBullet.bulletPoint.setY(ShipCurrentPoint.getYMin());
-//        //add that bullet to the vector 'theBullets'
-//        theBullets.push_back(newBullet);
-//        //create a new bullet Ship
-//        //give that bulet Ship a start location
-//        
-//        //give it a velocity x and y based on current angle
-//        
-//        //        Point rotateLeftpoint(Ship.getXMin() + 5, Ship.getYMax() - 50);
-//        //        drawNumber(rotateLeftpoint, dy);
-//        //        // draw the rotateRight
-//        //Point rotateRightpoint(5,  - 100);
-//        // drawNumber(rotateRightpoint, (int)theBullets.size());
-//    }
-//    
-//}
+       // }
+    //std::cout << isfinishedStrike;
+    isfinishedStrike=true;
+}
+
+
+/**************************************************
+ * SKEET : SHOOT
+ * Shoot the Ship with the spacebar
+ *************************************************/
+void Asteroids::shootBullets(int space)
+{
+    
+    //Should a new bullet Ship be shot out? If so create new ones!
+    if(space && (theBullets.size() < 5)){
+        //create a new bullet
+        canShootAnother = false;
+        Bullet newBullet;
+        newBullet.setX(ship.getX());
+        newBullet.setY(ship.getY());
+        //add that bullet to the vector 'theBullets'
+        theBullets.push_back(newBullet);
+    }
+    //now move them all
+    
+    for (int j = 0; j < theBullets.size(); j++){
+        theBullets[j].updateCurrentPoint();
+    
+    if(theBullets[j].getCurrentPoint().getX() > theBullets[j].getCurrentPoint().getXMax()){
+        theBullets[j].kill();
+        //std::cout << "RIGHT" << std::endl;
+    }
+    else if(theBullets[j].getCurrentPoint().getX()< theBullets[j].getCurrentPoint().getXMin()){
+        theBullets[j].kill();
+        //std::cout << "LEFT" << std::endl;
+    }
+    else if(theBullets[j].getCurrentPoint().getY()   > theBullets[j].getCurrentPoint().getYMax()){
+        theBullets[j].kill();
+        //std::cout << "TOP" << std::endl;
+    }
+    else if(theBullets[j].getCurrentPoint().getY()  < theBullets[j].getCurrentPoint().getYMin()){
+        theBullets[j].kill();
+         //i--;
+        //std::cout << "BOTTOM" << std::endl;
+    }
+        
+    }
+}
+void Asteroids::killObjects(){
+    //kill bullets
+    objectsHaveDied = false;
+    for (int j = 0; j < theBullets.size(); j++){
+    //now loop through and kill all the bullets that need it
+        if(!(theBullets[j].isAlive())){
+            theBullets[j] = theBullets.back(); theBullets.pop_back();
+            //theBullets[j].~Bullet();
+            j--;
+        }
+    }
+    //kills Asteroids
+    for (int i = 0; i < theAsteroids.size(); i++){
+        //now loop through and kill all the bullets that need it
+        if(!(theAsteroids[i].isAlive())){
+            theAsteroids[i] = theAsteroids.back(); theAsteroids.pop_back();
+            //theAsteroids[j].~Asteroids();
+            i--;
+        }
+    }
+    //let us know that all the objects have been killed so we can proceed
+    objectsHaveDied = true;
+}
 //
 ///**************************************************
 // * Asteroids : TIMECHECK
@@ -336,13 +474,13 @@ void Asteroids::moveShip(int rotateLeft, int rotateRight, int forward, int rever
     }
     
     
-    if (reverse>0 ){
-        newDY = .2*(sin((prevAngle-90)*PI/180));
-        newDX = .2*(cos((prevAngle-90)*PI/180));
-        ship.setDX(newDX + prevDX);
-        ship.setDY(newDY + prevDY);
-        
-    }
+//    if (reverse>0 ){
+//        newDY = .2*(sin((prevAngle-90)*PI/180));
+//        newDX = .2*(cos((prevAngle-90)*PI/180));
+//        ship.setDX(newDX + prevDX);
+//        ship.setDY(newDY + prevDY);
+//        
+//    }
     
     
     
@@ -350,9 +488,9 @@ void Asteroids::moveShip(int rotateLeft, int rotateRight, int forward, int rever
         forwardIsPressed = false;
     }
     
-    if (reverse==0){
-        reverseIsPressed = false;
-    }
+//    if (reverse==0){
+//        reverseIsPressed = false;
+//    }
     if (rotateLeft>0) {
         timePressedRight++;
         int multiplier = (timePressedRight % 5) + 1;
@@ -400,23 +538,42 @@ void Asteroids::draw()
     //loop through all the asteroids in the vector and draw them
     for (int j = 0; j < theAsteroids.size(); j++){
         if (theAsteroids[j].isAlive()){
-            if(theAsteroids[j].getSize() == 3){
+            theAsteroids[j].setAngle(theAsteroids[j].getAngle() + theAsteroids[j].getRotation());
+            int theAsteroidsSize = theAsteroids[j].getSize();
+            if(theAsteroidsSize== 3){
                 drawLargeAsteroid( theAsteroids[j].getCurrentPoint(), theAsteroids[j].getAngle());
+              //  std::cout << theAsteroidsSize;
             }
-            if(theAsteroids[j].getSize() == 2){
+            if(theAsteroidsSize== 2){
                 drawMediumAsteroid(theAsteroids[j].getCurrentPoint(), theAsteroids[j].getAngle());
             }
-            if(theAsteroids[j].getSize() == 1){
+            if(theAsteroidsSize== 1){
                 drawSmallAsteroid(theAsteroids[j].getCurrentPoint(), theAsteroids[j].getAngle());;
             }
-            // drawNumber(theasteroids[j].asteroidPoint, j);
         }
-        //  std::cout << theasteroids[j].asteroidPoint;
+  
     }
-   Point scorePointX(ship.getCurrentPoint().getXMin() + 5, ship.getCurrentPoint().getYMax() - 5);
-     Point scorePointY(ship.getCurrentPoint().getXMin() + 5, ship.getCurrentPoint().getYMax() - 20);
-   drawNumber(scorePointX, ship.getX());
-    drawNumber(scorePointY, ship.getY());
+    for (int i = 0; i < theBullets.size(); i++){
+        if (theBullets[i].isAlive()){
+          drawDot(theBullets[i].getCurrentPoint());
+        }
+    }
+    Point shipLifeOne(ship.getCurrentPoint().getXMin() + 10, ship.getCurrentPoint().getYMax() - 10);
+    Point shipLifeTwo(ship.getCurrentPoint().getXMin() + 25, ship.getCurrentPoint().getYMax() - 10);
+    Point shipLifeThree(ship.getCurrentPoint().getXMin() + 40, ship.getCurrentPoint().getYMax() - 10);
+    if (lives ==3){
+     drawShip(shipLifeOne, 0);
+     drawShip(shipLifeTwo, 0);
+     drawShip(shipLifeThree, 0);
+    }else if (lives ==2){
+            drawShip(shipLifeOne, 0);
+            drawShip(shipLifeTwo, 0);
+        }else if (lives ==1){
+            drawShip(shipLifeOne, 0);
+        }
+  //  Point scorePointY(ship.getCurrentPoint().getXMin() + 5, ship.getCurrentPoint().getYMax() - 20);
+  
+   // drawNumber(scorePointY, ship.getY());
 }
 //
 /*********************************************
@@ -435,13 +592,17 @@ void callBack(const Interface *pUI, void *p)
     // cast it into the game class.
     Asteroids *pAsteroids = (Asteroids *)p;
     
-//    pAsteroids->shoot(pUI->isSpace());
-//    //only run if previous loop is finished
-//    if (isfinishedStrike){
-//        isfinishedStrike = false;
-//        pAsteroids->strike();
-//    }
-//    // advance the Ship
+    //pAsteroids->shootBullets(pUI->isSpace());
+    //only run if previous loop is finished
+
+    pAsteroids->killObjects();
+    
+    if (isfinishedStrike){
+        isfinishedStrike = false;
+        pAsteroids->strike();
+        
+    }
+    // advance the Ship
     if(isfinishedAdvanceAsteroids){
         isfinishedAdvanceAsteroids = false;
          pAsteroids->moveAsteroids();
@@ -451,23 +612,21 @@ void callBack(const Interface *pUI, void *p)
         isfinishedAdvance = false;
         pAsteroids->advanceShip();
     }
-//
-//    //std::cout << isfinishedAdvance << isfinishedStrike <<std::endl;
-//    // check the ShipCurrentPoint
+
+   // std::cout << isfinishedStrike;
     pAsteroids->moveShip(pUI->isRight(), pUI->isLeft(), pUI->isUp(), pUI->isDown());
-    pAsteroids->moveAsteroids();
+ 
+    pAsteroids->shootBullets(pUI->isSpace());
+
+    //pAsteroids->moveAsteroids();
     pAsteroids->draw();
-//    // did we hit the Ship?
-//    
-//    //check if another asteroid can be realeased yet
-//    //get back boolean value
-//    pAsteroids->timeCheck();
-//    
-//    if(anotherasteroid){
-//        //we can now initiate another asteroid and add it to the asteroid vector
-//        pAsteroids->newasteroids();
-//    }
-    // draw it
+
+    ticks++;
+    if(ticks > 10) {
+        //std::cout << ticks;
+        ticks = 0;
+        canShootAnother = true;
+    }
     
 }
 
@@ -479,10 +638,9 @@ void callBack(const Interface *pUI, void *p)
  *********************************/
 int main(int argc, char **argv)
 {
-    
+    isfinishedStrike = true;
     // Start the drawing
     Interface ui(argc, argv, "Asteroids!");
-    
     // play the game.  Our function callback will get called periodically
     //called 30 times per second
     
